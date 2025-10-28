@@ -1,23 +1,22 @@
 "use client"
 
 import type React from "react"
-
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { useAuth } from "@/lib/auth-context"
+import { useSession } from "next-auth/react"
 import { Loader2 } from "lucide-react"
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, isLoading } = useAuth()
   const router = useRouter()
+  const { status } = useSession()
 
   useEffect(() => {
-    if (!isLoading && !user) {
-      router.push("/login")
+    if (status === "unauthenticated") {
+      router.replace("/login")
     }
-  }, [user, isLoading, router])
+  }, [status, router])
 
-  if (isLoading) {
+  if (status === "loading") {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -25,7 +24,7 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
     )
   }
 
-  if (!user) {
+  if (status === "unauthenticated") {
     return null
   }
 

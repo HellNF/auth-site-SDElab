@@ -5,6 +5,9 @@ import { GeistMono } from "geist/font/mono"
 import { Analytics } from "@vercel/analytics/next"
 import { Header } from "@/components/header"
 import { AuthProvider } from "@/lib/auth-context"
+import { OAuthEventsProvider } from "@/lib/oauth-events"
+import { Toaster } from "@/components/ui/toaster"
+import { AuthSessionListener } from "@/components/auth-session-listener"
 import { Suspense } from "react"
 import "./globals.css"
 
@@ -19,16 +22,22 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const isProd = process.env.NODE_ENV === "production"
+  const isVercel = process.env.VERCEL === "1"
   return (
     <html lang="it">
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
         <Suspense>
           <AuthProvider>
-            <Header />
-            {children}
+            <OAuthEventsProvider>
+              <Header />
+              <AuthSessionListener />
+              {children}
+              <Toaster />
+            </OAuthEventsProvider>
           </AuthProvider>
         </Suspense>
-        <Analytics />
+        {isProd && isVercel ? <Analytics /> : null}
       </body>
     </html>
   )
