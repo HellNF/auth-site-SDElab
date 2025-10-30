@@ -23,9 +23,6 @@ export function Header() {
             <Link href="/concepts" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               Concetti
             </Link>
-            <Link href="/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              Demo Login
-            </Link>
             {user ? (
               <>
                 <Link

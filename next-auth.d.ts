@@ -10,11 +10,39 @@ declare module "next-auth" {
       image?: string | null
       provider?: string
     }
+    oauthTrace?: Array<{
+      direction:
+        | "client→provider"
+        | "provider→client"
+        | "server→provider"
+        | "provider→server"
+        | "client→server"
+        | "server→client"
+      endpoint: string
+      method: string
+      payload?: Record<string, any>
+      response?: Record<string, any>
+      timestamp: number
+    }>
   }
 }
 
 declare module "next-auth/jwt" {
   interface JWT {
     provider?: string
+    oauthTrace?: Array<{
+      direction:
+        | "client→provider"
+        | "provider→client"
+        | "server→provider"
+        | "provider→server"
+        | "client→server"
+        | "server→client"
+      endpoint: string
+      method: string
+      payload?: Record<string, any>
+      response?: Record<string, any>
+      timestamp: number
+    }>
   }
 }

@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import { CheckCircle2, Shield, Key, Clock, User } from "lucide-react"
 import { OAuthSummary } from "@/components/oauth-summary"
+import { OAuthTraceViewer } from "@/components/OAuthTraceViewer"
 
 export default function DashboardPage() {
   const { user } = useAuth()
@@ -70,11 +71,6 @@ export default function DashboardPage() {
                   <Separator className="my-6" />
 
                   <div className="space-y-3">
-                    <div className="flex items-center gap-3 text-sm">
-                      <User className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-muted-foreground">Provider:</span>
-                      <span className="font-medium text-foreground">{providerLabel}</span>
-                    </div>
                     <div className="flex items-center gap-3 text-sm">
                       <Clock className="w-4 h-4 text-muted-foreground" />
                       <span className="text-muted-foreground">Sessione attiva dal:</span>
@@ -154,6 +150,11 @@ export default function DashboardPage() {
               {/* Riepilogo del flusso OAuth */}
               <div className="mt-8">
                 <OAuthSummary />
+              </div>
+
+              {/* Real OAuth Message Flow */}
+              <div className="mt-8">
+                <OAuthTraceViewer />
               </div>
             </div>
           </div>
