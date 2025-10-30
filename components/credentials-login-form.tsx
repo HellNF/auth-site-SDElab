@@ -6,7 +6,8 @@ export function CredentialsLoginForm() {
   return (
     <Alert variant="destructive">
       <AlertDescription>
-        L&apos;autenticazione con credenziali locali richiede un identity provider o un database utenti esterno. Configura una pipeline reale prima di riabilitare questa sezione.
+        Local credentials authentication requires an external identity provider or user database. Configure a real
+        pipeline before re-enabling this section.
       </AlertDescription>
     </Alert>
   )

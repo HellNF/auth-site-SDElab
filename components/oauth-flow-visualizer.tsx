@@ -2,7 +2,13 @@
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { CheckCircle2, Circle, Loader2 } from "lucide-react"
-import type { OAuthStep } from "@/lib/oauth-simulator"
+type OAuthStep = {
+  id: string
+  title: string
+  description: string
+  technical?: string
+  status: "pending" | "active" | "completed"
+}
 
 interface OAuthFlowVisualizerProps {
   steps: OAuthStep[]
@@ -14,10 +20,10 @@ export function OAuthFlowVisualizer({ steps, isActive }: OAuthFlowVisualizerProp
     <Card className="p-6">
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold">Flusso OAuth 2.0</h3>
+          <h3 className="text-lg font-semibold">OAuth 2.0 Flow</h3>
           {isActive && (
             <Badge variant="default" className="animate-pulse">
-              In corso...
+              In progress...
             </Badge>
           )}
         </div>

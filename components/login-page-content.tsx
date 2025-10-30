@@ -10,7 +10,7 @@ import { Card } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { SSOLoginButton } from "@/components/sso-login-button"
 import { ArrowRight, BookOpen, Layers, Eye, UsersRound, Github, Chrome, Laptop, Server, Key, Database, Shield } from "lucide-react"
-import { motion } from "framer-motion"
+import { GradientText, FadeInOnScroll, AnimatedCard, HoverEffect } from "@/components/react-bits-shim"
 
 interface LoginPageContentProps {
   providersConfigured: boolean
@@ -56,7 +56,9 @@ export function LoginPageContent({ providersConfigured, configuredProviders }: L
       <div className="container mx-auto px-4">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold mb-3 text-foreground">Authentication Demo</h1>
+            <GradientText from="blue-600" via="purple-600" to="pink-500" className="text-4xl font-bold">
+              Authentication & SSO Demo
+            </GradientText>
             <p className="text-muted-foreground text-lg">
               This page is part of the <b>Service Design & Engineering Lab</b> on Authentication and SSO. <br />
               You can sign in using real OAuth providers and observe the real-time message exchange between
@@ -70,15 +72,10 @@ export function LoginPageContent({ providersConfigured, configuredProviders }: L
               </Link>
             </p>
           </div>
-          {/* Centerpiece sign-in card with motion and visual polish */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
-            className="max-w-lg w-full mx-auto"
-          >
-            <Card
-              className="w-full p-10 rounded-2xl border border-gray-200 bg-white/80 backdrop-blur-sm
+          {/* Centerpiece sign-in card enhanced with React Bits */}
+          <FadeInOnScroll>
+            <AnimatedCard
+              className="max-w-lg w-full mx-auto p-10 rounded-2xl border border-gray-200 bg-white/80 backdrop-blur-sm
                          shadow-[0_10px_40px_-5px_rgba(37,99,235,0.25)]
                          hover:shadow-[0_15px_50px_-5px_rgba(37,99,235,0.35)]
                          transition-all duration-300 hover:-translate-y-1"
@@ -105,10 +102,14 @@ export function LoginPageContent({ providersConfigured, configuredProviders }: L
                 </Alert>
               ) : null}
 
-              {/* SSO buttons */}
+              {/* SSO buttons with gentle hover effect */}
               <div className="flex flex-col gap-3 mt-6">
-                <SSOLoginButton provider="github" onFlowStart={handleAuthFlowStart} disabled={!providersConfigured} />
-                <SSOLoginButton provider="google" onFlowStart={handleAuthFlowStart} disabled={!providersConfigured} />
+                <HoverEffect>
+                  <SSOLoginButton provider="github" onFlowStart={handleAuthFlowStart} disabled={!providersConfigured} />
+                </HoverEffect>
+                <HoverEffect>
+                  <SSOLoginButton provider="google" onFlowStart={handleAuthFlowStart} disabled={!providersConfigured} />
+                </HoverEffect>
               </div>
 
               {/* Diagram of OAuth flow */}
@@ -133,11 +134,12 @@ export function LoginPageContent({ providersConfigured, configuredProviders }: L
                 </Link>{" "}
                 to view the real OAuth message trace.
               </p>
-            </Card>
-          </motion.div>
+            </AnimatedCard>
+          </FadeInOnScroll>
 
           {/* Hint banner linking to Dashboard */}
-          <Alert className="max-w-2xl mx-auto bg-blue-50 border-blue-200 mt-8">
+          <FadeInOnScroll>
+            <Alert className="max-w-2xl mx-auto bg-blue-50 border-blue-200 mt-8">
             <AlertDescription>
               ✅ Once you’ve signed in, go to the
               {" "}
@@ -147,11 +149,13 @@ export function LoginPageContent({ providersConfigured, configuredProviders }: L
               {" "}
               to explore the real OAuth 2.0 message trace in detail.
             </AlertDescription>
-          </Alert>
+            </Alert>
+          </FadeInOnScroll>
 
           {/* Understanding the Flow: Roles and Phases */}
           <div className="grid md:grid-cols-2 gap-8 mt-10">
-            <Card className="p-6 rounded-xl border border-l-4 border-l-blue-400 bg-blue-50">
+            <FadeInOnScroll>
+              <Card className="p-6 rounded-xl border border-l-4 border-l-blue-400 bg-blue-50">
               <div className="flex items-center gap-2 mb-3">
                 <BookOpen className="w-5 h-5 text-blue-500" />
                 <h3 className="text-lg font-semibold text-foreground">Roles in the OAuth 2.0 Flow</h3>
@@ -162,9 +166,11 @@ export function LoginPageContent({ providersConfigured, configuredProviders }: L
                 <li>🔐 <b>Authorization Server:</b> Manages user authentication (e.g., Google, GitHub).</li>
                 <li>📦 <b>Resource Server:</b> Hosts the protected data (e.g., user profile).</li>
               </ul>
-            </Card>
+              </Card>
+            </FadeInOnScroll>
 
-            <Card className="p-6 rounded-xl border border-l-4 border-l-indigo-400 bg-indigo-50">
+            <FadeInOnScroll>
+              <Card className="p-6 rounded-xl border border-l-4 border-l-indigo-400 bg-indigo-50">
               <div className="flex items-center gap-2 mb-3">
                 <Layers className="w-5 h-5 text-indigo-500" />
                 <h3 className="text-lg font-semibold text-foreground">Phases of the Authentication Flow</h3>
@@ -175,12 +181,14 @@ export function LoginPageContent({ providersConfigured, configuredProviders }: L
                 <li>The provider returns an <code>authorization code</code>.</li>
                 <li>The app exchanges the code for an <code>access token</code> and creates the local session.</li>
               </ol>
-            </Card>
+              </Card>
+            </FadeInOnScroll>
           </div>
 
           {/* Educational Notes / Tips */}
           <div className="mt-8">
-            <Card className="p-6 rounded-xl border border-l-4 border-l-teal-400 bg-teal-50">
+            <FadeInOnScroll>
+              <Card className="p-6 rounded-xl border border-l-4 border-l-teal-400 bg-teal-50">
               <div className="flex items-center gap-2 mb-3">
                 <Eye className="w-5 h-5 text-teal-600" />
                 <h3 className="text-lg font-semibold text-foreground">What to Observe During the Flow</h3>
@@ -191,12 +199,14 @@ export function LoginPageContent({ providersConfigured, configuredProviders }: L
                 <li>🛡️ Notice when the local session is created.</li>
                 <li>➡️ After login, the Dashboard shows the real message timeline of the OAuth flow.</li>
               </ul>
-            </Card>
+              </Card>
+            </FadeInOnScroll>
           </div>
 
           {/* SSO benefits and configuration */}
           <div className="grid md:grid-cols-2 gap-8 mt-8">
-            <Card className="p-6 rounded-xl border bg-emerald-50 border-emerald-200">
+            <FadeInOnScroll>
+              <Card className="p-6 rounded-xl border bg-emerald-50 border-emerald-200">
               <h3 className="font-semibold mb-3 text-foreground">Advantages of Single Sign-On (SSO)</h3>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li className="flex items-start gap-2">
@@ -216,9 +226,11 @@ export function LoginPageContent({ providersConfigured, configuredProviders }: L
                   <span>Reduced risk of phishing and credential leaks.</span>
                 </li>
               </ul>
-            </Card>
+              </Card>
+            </FadeInOnScroll>
 
-            <Card className="p-6 rounded-xl border bg-gray-50 border-gray-200">
+            <FadeInOnScroll>
+              <Card className="p-6 rounded-xl border bg-gray-50 border-gray-200">
               <h3 className="font-semibold mb-3 text-foreground">Configured Providers</h3>
               <div className="flex flex-wrap gap-2">
                 <Badge variant={configuredBadgeVariants("github")} className="flex items-center gap-1">
@@ -233,7 +245,8 @@ export function LoginPageContent({ providersConfigured, configuredProviders }: L
                 Set the environment variables <code>GITHUB_ID</code>, <code>GITHUB_SECRET</code>,{" "}
                 <code>GOOGLE_CLIENT_ID</code> and <code>GOOGLE_CLIENT_SECRET</code> to enable the respective providers.
               </p>
-            </Card>
+              </Card>
+            </FadeInOnScroll>
           </div>
 
           {/* Footer note */}

@@ -19,8 +19,8 @@ export function AuthSessionListener() {
       const pushed = typeof window !== "undefined" && sessionStorage.getItem(SESSION_PUSH_KEY)
       if (!pushed) {
         addEvent({
-          title: "Sessione creata",
-          description: "L'utente è autenticato e la sessione è attiva",
+          title: "Session created",
+          description: "User is authenticated and the session is active",
           technical: "NextAuth session established (JWT strategy)",
           role: "server",
         })
@@ -33,8 +33,8 @@ export function AuthSessionListener() {
     }
 
     if (status === "unauthenticated") {
-      // Facoltativo: evento di logout / sessione non presente
-      // addEvent({ title: "Sessione assente", description: "Utente non autenticato", role: "server" })
+      // Optional: logout event / no active session
+      // addEvent({ title: "No session", description: "User not authenticated", role: "server" })
     }
   }, [status, addEvent])
 

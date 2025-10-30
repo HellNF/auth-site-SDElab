@@ -4,6 +4,7 @@ import { GeistSans } from "geist/font/sans"
 import { GeistMono } from "geist/font/mono"
 import { Analytics } from "@vercel/analytics/next"
 import { Header } from "@/components/header"
+import { FadeInOnScroll } from "@/components/react-bits-shim"
 import { AuthProvider } from "@/lib/auth-context"
 import { OAuthEventsProvider } from "@/lib/oauth-events"
 import { Toaster } from "@/components/ui/toaster"
@@ -13,7 +14,7 @@ import "./globals.css"
 
 export const metadata: Metadata = {
   title: "Auth Lab - Service Design & Engineering",
-  description: "Laboratorio universitario su autenticazione, OAuth e SSO",
+  description: "University lab on authentication, OAuth and SSO",
   generator: "v0.app",
 }
 
@@ -32,7 +33,10 @@ export default function RootLayout({
             <OAuthEventsProvider>
               <Header />
               <AuthSessionListener />
-              {children}
+              {/* Global subtle entry animation for page content */}
+              <FadeInOnScroll>
+                <div className="min-h-screen">{children}</div>
+              </FadeInOnScroll>
               <Toaster />
             </OAuthEventsProvider>
           </AuthProvider>
