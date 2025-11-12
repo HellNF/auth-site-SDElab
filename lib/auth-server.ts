@@ -328,6 +328,8 @@ export const authOptions: NextAuthOptions = {
         provider: (message as any)?.account?.provider,
         payload: message,
       })
+      // Reset the in-memory OAuth trace on successful sign-out
+      clearTrace()
     },
   },
 
