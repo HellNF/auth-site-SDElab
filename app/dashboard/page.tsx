@@ -17,7 +17,7 @@ import {
   Info,
 } from "lucide-react"
 import { OAuthSummary } from "@/components/oauth-summary"
-import { OAuthTraceViewer } from "@/components/OAuthTraceViewer"
+import OAuthTraceViewer from "@/components/OAuthTraceViewer"
 import { FadeInOnScroll, AnimatedCard } from "@/components/react-bits-shim"
 
 export default function DashboardPage() {
