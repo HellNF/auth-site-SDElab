@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo } from "react"
+import { Fragment, useEffect, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useSession } from "next-auth/react"
@@ -14,20 +14,20 @@ import {
   BookOpen,
   Layers,
   Eye,
-  UsersRound,
   Github,
   Chrome,
-  Laptop,
   Server,
   Key,
-  Database,
   Shield,
   ChevronRight,
   Info,
   Lock,
   User,
 } from "lucide-react"
-import { GradientText, FadeInOnScroll, AnimatedCard, HoverEffect } from "@/components/react-bits-shim"
+import { GradientText, FadeInOnScroll, AnimatedCard } from "@/components/react-bits-shim"
+
+// Wrapper senza animazione per sezioni non critiche
+const NoFade: React.FC<React.PropsWithChildren> = ({ children }) => <>{children}</>
 
 interface LoginPageContentProps {
   providersConfigured: boolean
@@ -70,7 +70,7 @@ export function LoginPageContent({ providersConfigured, configuredProviders }: L
       <div className="pointer-events-none absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-gradient-to-tr from-purple-400/10 via-pink-400/10 to-blue-400/10 blur-3xl" />
 
       <div className="max-w-6xl mx-auto px-6 py-16 space-y-10">
-        {/* Header */}
+        {/* Header: manteniamo animazione */}
         <FadeInOnScroll>
           <div className="text-center">
             <GradientText from="blue-600" via="indigo-500" to="purple-500" className="text-4xl font-bold">
@@ -93,7 +93,7 @@ export function LoginPageContent({ providersConfigured, configuredProviders }: L
           </div>
         </FadeInOnScroll>
 
-        {/* Glass login card */}
+        {/* Glass login card: manteniamo animazione */}
         <FadeInOnScroll>
           <div className="relative mx-auto max-w-md">
             <AnimatedCard className="p-8 rounded-2xl bg-white/70 backdrop-blur-lg shadow-xl border border-white/40 hover:shadow-2xl transition-all duration-300 hover:-translate-y-0.5">
@@ -153,14 +153,14 @@ export function LoginPageContent({ providersConfigured, configuredProviders }: L
           </div>
         </FadeInOnScroll>
 
-        {/* Info cards */}
-        <FadeInOnScroll>
+        {/* Titolo sezione: niente fade */}
+        <NoFade>
           <h3 className="text-2xl font-semibold mb-6 text-gray-900 text-center">How this works</h3>
-        </FadeInOnScroll>
+        </NoFade>
 
         <section className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 items-start">
-          {/* Roles */}
-          <FadeInOnScroll>
+          {/* Roles: niente fade */}
+          <NoFade>
             <Card className="h-full p-6 rounded-xl bg-white/80 backdrop-blur border border-white/60 shadow-sm hover:shadow-lg hover:scale-[1.01] transition-all duration-200 relative overflow-hidden">
               <div className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-blue-500 to-indigo-500" />
               <div className="flex items-center gap-2 mb-3">
@@ -174,10 +174,10 @@ export function LoginPageContent({ providersConfigured, configuredProviders }: L
                 <li>📦 <b>Resource Server:</b> Hosts the protected data (e.g., user profile).</li>
               </ul>
             </Card>
-          </FadeInOnScroll>
+          </NoFade>
 
-          {/* Phases */}
-          <FadeInOnScroll>
+          {/* Phases: niente fade */}
+          <NoFade>
             <Card className="h-full p-6 rounded-xl bg-white/80 backdrop-blur border border-white/60 shadow-sm hover:shadow-lg hover:scale-[1.01] transition-all duration-200 relative overflow-hidden">
               <div className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-indigo-500 to-purple-500" />
               <div className="flex items-center gap-2 mb-3">
@@ -191,10 +191,10 @@ export function LoginPageContent({ providersConfigured, configuredProviders }: L
                 <li>The app exchanges the code for an <code>access token</code> and creates the local session.</li>
               </ol>
             </Card>
-          </FadeInOnScroll>
+          </NoFade>
 
-          {/* What to observe – full width */}
-          <FadeInOnScroll>
+          {/* What to observe: niente fade */}
+          <NoFade>
             <Card className="md:col-span-2 h-full p-6 rounded-xl bg-white/80 backdrop-blur border border-white/60 shadow-sm hover:shadow-lg hover:scale-[1.005] transition-all duration-200 relative overflow-hidden">
               <div className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-teal-500 to-emerald-500" />
               <div className="flex items-center gap-2 mb-3">
@@ -208,10 +208,10 @@ export function LoginPageContent({ providersConfigured, configuredProviders }: L
                 <li>➡️ After login, the Dashboard shows the real message timeline of the OAuth flow.</li>
               </ul>
             </Card>
-          </FadeInOnScroll>
+          </NoFade>
 
-          {/* Advantages */}
-          <FadeInOnScroll>
+          {/* Advantages: niente fade */}
+          <NoFade>
             <Card className="h-full p-6 rounded-xl bg-white/80 backdrop-blur border border-white/60 shadow-sm hover:shadow-lg hover:scale-[1.01] transition-all duration-200 relative overflow-hidden">
               <div className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-emerald-500 to-green-600" />
               <h4 className="font-semibold mb-3 text-foreground">Advantages of Single Sign-On (SSO)</h4>
@@ -234,10 +234,10 @@ export function LoginPageContent({ providersConfigured, configuredProviders }: L
                 </li>
               </ul>
             </Card>
-          </FadeInOnScroll>
+          </NoFade>
 
-          {/* Configured providers */}
-          <FadeInOnScroll>
+          {/* Configured providers: niente fade */}
+          <NoFade>
             <Card className="h-full w-lg self-start p-6 rounded-xl bg-white/80 backdrop-blur border border-white/60 shadow-sm hover:shadow-lg hover:scale-[1.01] transition-all duration-200 relative overflow-hidden">
               <div className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-blue-500 to-purple-500" />
               <h4 className="font-semibold mb-3 text-foreground">Configured Providers</h4>
@@ -255,10 +255,10 @@ export function LoginPageContent({ providersConfigured, configuredProviders }: L
                 <code> GOOGLE_CLIENT_SECRET</code> to enable the respective providers.
               </p>
             </Card>
-          </FadeInOnScroll>
+          </NoFade>
         </section>
 
-        {/* Footer */}
+        {/* Footer (già senza fade) */}
         <footer className="text-center mt-12 text-sm text-gray-500">
           Educational demo — built with <span className="text-blue-600 font-medium">NextAuth & OAuth 2.0</span> ·
           <Link href="https://github.com/HellNF/auth-site-SDElab" className="hover:underline ml-1" target="_blank" rel="noreferrer noopener">
