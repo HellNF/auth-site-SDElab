@@ -6,7 +6,16 @@ import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
-import { CheckCircle2, Shield, Key, Clock } from "lucide-react"
+import {
+  CheckCircle2,
+  Shield,
+  Key,
+  Clock,
+  User,
+  Lock,
+  Power,
+  Info,
+} from "lucide-react"
 import { OAuthSummary } from "@/components/oauth-summary"
 import { OAuthTraceViewer } from "@/components/OAuthTraceViewer"
 import { FadeInOnScroll, AnimatedCard } from "@/components/react-bits-shim"
@@ -15,10 +24,7 @@ export default function DashboardPage() {
   const { user } = useAuth()
 
   const userInitials = useMemo(() => {
-    if (!user?.name) {
-      return "U"
-    }
-
+    if (!user?.name) return "U"
     return (
       user.name
         .split(" ")
@@ -28,150 +34,245 @@ export default function DashboardPage() {
     )
   }, [user?.name])
 
-  const providerLabel = user?.provider ? user.provider.charAt(0).toUpperCase() + user.provider.slice(1) : "SSO"
+  const providerLabel = user?.provider
+    ? user.provider.charAt(0).toUpperCase() + user.provider.slice(1)
+    : "SSO"
   const userIdPreview = user?.id ? `${user.id.substring(0, 12)}...` : "N/A"
 
   return (
     <ProtectedRoute>
       {user ? (
-        <main className="min-h-screen bg-background py-12">
-          <div className="container mx-auto px-4">
-            <div className="max-w-5xl mx-auto">
-              <AnimatedCard>
-              <Card className="p-6 mb-8 bg-accent/10 border-accent/20">
+        <main className="min-h-screen bg-gradient-to-b from-white via-blue-50/30 to-indigo-50/10">
+          <div className="max-w-6xl mx-auto px-6 py-20 space-y-16">
+            {/* ✅ Banner */}
+            <FadeInOnScroll>
+              <div className="rounded-xl bg-emerald-50/80 border border-emerald-200 px-5 py-4 flex items-center justify-between shadow-sm backdrop-blur-sm">
                 <div className="flex items-center gap-3">
-                  <CheckCircle2 className="w-6 h-6 text-accent flex-shrink-0" />
+                  <div className="size-9 rounded-full bg-emerald-100 flex items-center justify-center">
+                    <CheckCircle2 className="text-emerald-600 w-5 h-5" />
+                  </div>
                   <div>
-                    <h2 className="font-semibold text-foreground">Authentication Successful!</h2>
-                    <p className="text-sm text-muted-foreground">
-                      You&apos;ve signed in successfully. This is a protected area accessible only to authenticated users.
+                    <p className="text-emerald-800 font-semibold text-sm">
+                      Authentication Successful
+                    </p>
+                    <p className="text-xs text-emerald-700">
+                      Signed in on {new Date().toLocaleString("en-US", { hour12: false })}
                     </p>
                   </div>
                 </div>
-              </Card>
-              </AnimatedCard>
-
-              <div className="grid md:grid-cols-3 gap-6 mb-8">
-                <AnimatedCard>
-                <Card className="p-6 md:col-span-2">
-                  <h3 className="text-xl font-semibold mb-4 text-foreground">User Information</h3>
-                  <div className="flex items-start gap-4">
-                    <Avatar className="w-16 h-16">
-                      <AvatarImage src={user.image ?? "/placeholder.svg"} alt={user.name ?? "User"} />
-                      <AvatarFallback className="bg-primary text-primary-foreground text-lg">
-                        {userInitials}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <h4 className="font-semibold text-lg text-foreground">{user.name ?? "User"}</h4>
-                      <p className="text-muted-foreground text-sm mb-3">{user.email ?? "Email not available"}</p>
-                      <Badge variant="secondary" className="gap-1 capitalize">
-                        <Shield className="w-3 h-3" />
-                        {providerLabel}
-                      </Badge>
-                    </div>
-                  </div>
-
-                  <Separator className="my-6" />
-
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3 text-sm">
-                      <Clock className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-muted-foreground">Session active since:</span>
-                      <span className="font-medium text-foreground">{new Date().toLocaleDateString("en-US")}</span>
-                    </div>
-                  </div>
-                </Card>
-                </AnimatedCard>
-
-                <AnimatedCard>
-                <Card className="p-6 bg-primary/5 border-primary/20">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Key className="w-5 h-5 text-primary" />
-                    <h3 className="font-semibold text-foreground">Session Token</h3>
-                  </div>
-                  <p className="text-xs text-muted-foreground mb-3 leading-relaxed">
-                    Your session is managed by NextAuth and protected via secure cookies.
-                  </p>
-                  <div className="p-3 bg-background rounded border border-border">
-                    <code className="text-xs font-mono text-muted-foreground break-all">
-                      user_id: {userIdPreview}
-                    </code>
-                  </div>
-                </Card>
-                </AnimatedCard>
+                <Badge variant="outline" className="text-emerald-700 border-emerald-300 bg-white/70">
+                  Session Overview
+                </Badge>
               </div>
+            </FadeInOnScroll>
 
-              <div className="grid md:grid-cols-2 gap-6">
-                <AnimatedCard>
-                <Card className="p-6">
-                  <h3 className="text-lg font-semibold mb-4 text-foreground">How Protection Works</h3>
-                  <div className="space-y-4 text-sm">
-                    <div>
-                      <h4 className="font-medium mb-2 text-foreground">1. NextAuth Session</h4>
-                      <p className="text-muted-foreground leading-relaxed">
-                        Authentication is delegated to real OAuth providers (GitHub/Google) via NextAuth.
-                      </p>
-                    </div>
-                    <Separator />
-                    <div>
-                      <h4 className="font-medium mb-2 text-foreground">2. Protected Routes</h4>
-                      <p className="text-muted-foreground leading-relaxed">
-                        The ProtectedRoute component checks the session before rendering sensitive content.
-                      </p>
-                    </div>
-                    <Separator />
-                    <div>
-                      <h4 className="font-medium mb-2 text-foreground">3. Secure Logout</h4>
-                      <p className="text-muted-foreground leading-relaxed">
-                        Signing out invalidates the browser session and returns you to the login page.
-                      </p>
-                    </div>
-                  </div>
-                </Card>
-                </AnimatedCard>
-
-                <AnimatedCard>
-                <Card className="p-6">
-                  <h3 className="text-lg font-semibold mb-4 text-foreground">Demo Status</h3>
-                  <div className="space-y-4 text-sm">
-                    <div className="flex items-start gap-3">
-                      <CheckCircle2 className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
-                      <div>
-                        <h4 className="font-medium mb-1 text-foreground">OAuth Providers</h4>
-                        <p className="text-muted-foreground leading-relaxed">
-                          Configure GitHub/Google credentials to use real providers.
-                        </p>
+            {/* ✅ User & Token */}
+            <FadeInOnScroll>
+              <section>
+                <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
+                  Session Overview
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* User Info */}
+                  <AnimatedCard>
+                    <Card className="p-6 rounded-xl bg-white/80 backdrop-blur border border-blue-100 shadow-sm hover:shadow-md transition-all duration-300">
+                      <div className="flex items-center gap-2 mb-4">
+                        <User className="w-5 h-5 text-blue-600" />
+                        <h3 className="text-lg font-semibold text-foreground">
+                          User Information
+                        </h3>
                       </div>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <CheckCircle2 className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
-                      <div>
-                        <h4 className="font-medium mb-1 text-foreground">Flow Monitor</h4>
-                        <p className="text-muted-foreground leading-relaxed">
-                          The viewer shows OAuth flow steps in real time during redirects.
-                        </p>
+                      <div className="flex items-start gap-4">
+                        <Avatar className="w-16 h-16">
+                          <AvatarImage
+                            src={user.image ?? "/placeholder.svg"}
+                            alt={user.name ?? "User"}
+                          />
+                          <AvatarFallback className="bg-blue-100 text-blue-700 font-semibold">
+                            {userInitials}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-lg text-foreground">
+                            {user.name ?? "User"}
+                          </h4>
+                          <p className="text-sm text-muted-foreground mb-2">
+                            {user.email ?? "Email not available"}
+                          </p>
+                          <Badge
+                            variant="secondary"
+                            className="gap-1 capitalize bg-blue-100 text-blue-700"
+                          >
+                            <Shield className="w-3 h-3" />
+                            {providerLabel}
+                          </Badge>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                </Card>
-                </AnimatedCard>
-              </div>
+                      <Separator className="my-5" />
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Clock className="w-4 h-4" />
+                        <span>
+                          Session active since{" "}
+                          <span className="font-medium text-foreground">
+                            {new Date().toLocaleDateString("en-US")}
+                          </span>
+                        </span>
+                      </div>
+                    </Card>
+                  </AnimatedCard>
 
-              {/* OAuth flow summary */}
-              <FadeInOnScroll>
-                <div className="mt-8">
-                  <OAuthSummary />
+                  {/* Token */}
+                  <AnimatedCard>
+                    <Card className="p-6 rounded-xl bg-white/80 backdrop-blur border border-indigo-100 shadow-sm hover:shadow-md transition-all duration-300">
+                      <div className="flex items-center gap-2 mb-4">
+                        <Key className="w-5 h-5 text-indigo-600" />
+                        <h3 className="text-lg font-semibold text-foreground">
+                          Session Token
+                        </h3>
+                      </div>
+                      <p className="text-sm text-muted-foreground mb-3">
+                        Your session is managed by NextAuth and protected via
+                        secure cookies.
+                      </p>
+                      <div className="p-3 bg-gray-50 rounded border border-gray-200">
+                        <code className="text-xs font-mono text-gray-700 break-all">
+                          user_id: {userIdPreview}
+                        </code>
+                      </div>
+                    </Card>
+                  </AnimatedCard>
                 </div>
-              </FadeInOnScroll>
+              </section>
+            </FadeInOnScroll>
 
-              {/* Real OAuth Message Flow */}
-              <FadeInOnScroll>
-                <div className="mt-8">
+            {/* ✅ How it Works */}
+            <FadeInOnScroll>
+              <section>
+                <h2 className="text-lg font-semibold text-gray-800 mb-6">
+                  How Protection Works
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {[
+                    {
+                      id: 1,
+                      color: "from-blue-500 to-indigo-500",
+                      title: "NextAuth Session",
+                      desc: "Authentication is delegated to real OAuth providers (GitHub/Google) via NextAuth.",
+                      icon: <Lock className="w-5 h-5 text-blue-600" />,
+                    },
+                    {
+                      id: 2,
+                      color: "from-violet-500 to-purple-500",
+                      title: "Protected Routes",
+                      desc: "The ProtectedRoute component checks the session before rendering sensitive content.",
+                      icon: <Shield className="w-5 h-5 text-violet-600" />,
+                    },
+                    {
+                      id: 3,
+                      color: "from-emerald-500 to-teal-500",
+                      title: "Secure Logout",
+                      desc: "Signing out invalidates the browser session and returns you to the login page.",
+                      icon: <Power className="w-5 h-5 text-emerald-600" />,
+                    },
+                  ].map((item) => (
+                    <AnimatedCard key={item.id}>
+                      <div className="p-6 bg-white/70 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all">
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-r text-white flex items-center justify-center font-semibold text-sm"
+                            style={{ backgroundImage: `linear-gradient(to right, var(--${item.color}))` }}>
+                            {item.id}
+                          </div>
+                          {item.icon}
+                          <h4 className="font-medium text-gray-800">
+                            {item.title}
+                          </h4>
+                        </div>
+                        <p className="text-sm text-gray-600 leading-relaxed">
+                          {item.desc}
+                        </p>
+                      </div>
+                    </AnimatedCard>
+                  ))}
+                </div>
+              </section>
+            </FadeInOnScroll>
+
+            {/* ✅ Demo Status */}
+            <FadeInOnScroll>
+              <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <AnimatedCard>
+                  <Card className="p-6 bg-emerald-50/80 border border-emerald-100 rounded-xl shadow-sm">
+                    <div className="flex items-start gap-3">
+                      <CheckCircle2 className="w-6 h-6 text-emerald-600 mt-1" />
+                      <div>
+                        <h4 className="font-semibold text-gray-800 mb-1">
+                          OAuth Providers
+                        </h4>
+                        <p className="text-sm text-emerald-700/90">
+                          Configured to work with GitHub/Google credentials.
+                        </p>
+                      </div>
+                    </div>
+                  </Card>
+                </AnimatedCard>
+
+                <AnimatedCard>
+                  <Card className="p-6 bg-blue-50/80 border border-blue-100 rounded-xl shadow-sm">
+                    <div className="flex items-start gap-3">
+                      <Info className="w-6 h-6 text-blue-600 mt-1" />
+                      <div>
+                        <h4 className="font-semibold text-gray-800 mb-1">
+                          Flow Monitor
+                        </h4>
+                        <p className="text-sm text-blue-700/90">
+                          Viewer shows OAuth steps in real time during redirects.
+                        </p>
+                      </div>
+                    </div>
+                  </Card>
+                </AnimatedCard>
+              </section>
+            </FadeInOnScroll>
+
+            {/* ✅ OAuth Summary + Trace */}
+            <FadeInOnScroll>
+              <section className="space-y-8">
+                <div className="rounded-xl border shadow-sm overflow-hidden">
+                  <div className="h-1 bg-gradient-to-r from-blue-500 to-indigo-500" />
+                  <div className="p-1">
+                    <OAuthSummary />
+                  </div>
+                </div>
+
+                <div className="rounded-xl border shadow-sm overflow-hidden">
                   <OAuthTraceViewer />
                 </div>
-              </FadeInOnScroll>
-            </div>
+              </section>
+            </FadeInOnScroll>
+
+            {/* ✅ Footer */}
+            <FadeInOnScroll>
+              <footer className="pt-8 text-center text-sm text-gray-500">
+                Educational demo built with{" "}
+                <a
+                  className="text-blue-600 font-medium hover:underline"
+                  href="https://next-auth.js.org"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  NextAuth
+                </a>{" "}
+                &{" "}
+                <a
+                  className="text-blue-600 font-medium hover:underline"
+                  href="https://oauth.net/2/"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  OAuth 2.0
+                </a>
+              </footer>
+            </FadeInOnScroll>
           </div>
         </main>
       ) : null}
