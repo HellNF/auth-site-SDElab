@@ -9,17 +9,29 @@ import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { SSOLoginButton } from "@/components/sso-login-button"
-import { ArrowRight, BookOpen, Layers, Eye, UsersRound, Github, Chrome, Laptop, Server, Key, Database, Shield } from "lucide-react"
+import {
+  ArrowRight,
+  BookOpen,
+  Layers,
+  Eye,
+  UsersRound,
+  Github,
+  Chrome,
+  Laptop,
+  Server,
+  Key,
+  Database,
+  Shield,
+  ChevronRight,
+  Info,
+  Lock,
+  User,
+} from "lucide-react"
 import { GradientText, FadeInOnScroll, AnimatedCard, HoverEffect } from "@/components/react-bits-shim"
 
 interface LoginPageContentProps {
   providersConfigured: boolean
   configuredProviders: string[]
-}
-
-const providerLabels: Record<"github" | "google", string> = {
-  github: "GitHub",
-  google: "Google",
 }
 
 export function LoginPageContent({ providersConfigured, configuredProviders }: LoginPageContentProps) {
@@ -52,41 +64,44 @@ export function LoginPageContent({ providersConfigured, configuredProviders }: L
   }
 
   return (
-    <main className="min-h-screen bg-background py-12">
-      <div className="container mx-auto px-4">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-8">
-            <GradientText from="blue-600" via="purple-600" to="pink-500" className="text-4xl font-bold">
+    <main className="relative overflow-hidden bg-gradient-to-b from-blue-50 via-white to-blue-100/30">
+      {/* Decorative background shapes */}
+      <div className="pointer-events-none absolute -top-24 -right-24 h-72 w-72 rounded-full bg-gradient-to-br from-blue-400/20 via-indigo-400/20 to-purple-400/20 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-gradient-to-tr from-purple-400/10 via-pink-400/10 to-blue-400/10 blur-3xl" />
+
+      <div className="max-w-6xl mx-auto px-6 py-16 space-y-10">
+        {/* Header */}
+        <FadeInOnScroll>
+          <div className="text-center">
+            <GradientText from="blue-600" via="indigo-500" to="purple-500" className="text-4xl font-bold">
               Authentication & SSO Demo
             </GradientText>
-            <p className="text-muted-foreground text-lg">
-              This page is part of the <b>Service Design & Engineering Lab</b> on Authentication and SSO. <br />
-              You can sign in using real OAuth providers and observe the real-time message exchange between
-              <code> Client </code>, <code> Authorization Server </code> and <code> Resource Server</code>.
+            <p className="mt-3 max-w-3xl mx-auto text-muted-foreground leading-relaxed text-center text-[1.05rem]">
+              This page is part of the <b>Service Design & Engineering Lab</b> on Authentication and SSO. Sign in using real
+              OAuth providers and observe the live message exchange between the <code>Client</code>,
+              <code> Authorization Server</code>, and <code>Resource Server</code>.
             </p>
-            <p className="mt-3 text-sm text-muted-foreground">
-              <span className="font-semibold text-blue-600">Step 1</span>: Sign in
-              <ArrowRight className="inline mx-1 w-3 h-3 text-muted-foreground" />
-              <Link href="/dashboard" className="text-muted-foreground hover:text-blue-600 hover:underline">
-                <span className="text-gray-500">Step 2</span>: Observe the Flow
-              </Link>
-            </p>
-          </div>
-          {/* Centerpiece sign-in card enhanced with React Bits */}
-          <FadeInOnScroll>
-            <AnimatedCard
-              className="max-w-lg w-full mx-auto p-10 rounded-2xl border border-gray-200 bg-white/80 backdrop-blur-sm
-                         shadow-[0_10px_40px_-5px_rgba(37,99,235,0.25)]
-                         hover:shadow-[0_15px_50px_-5px_rgba(37,99,235,0.35)]
-                         transition-all duration-300 hover:-translate-y-1"
-            >
-              {/* Gradient accent bar */}
-              <div className="h-1 w-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-t-2xl -mt-2 mb-6" />
 
-              {/* Title and description */}
+            {/* Step indicator */}
+            <div className="flex items-center justify-center gap-2 mt-6">
+              <span className="px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-sm font-medium">Step 1</span>
+              <ChevronRight className="text-blue-400 w-4 h-4" />
+              <Link href="/dashboard" className="px-3 py-1 rounded-full bg-gray-100 text-gray-600 text-sm hover:bg-gray-200">
+                Step 2
+              </Link>
+            </div>
+          </div>
+        </FadeInOnScroll>
+
+        {/* Glass login card */}
+        <FadeInOnScroll>
+          <div className="relative mx-auto max-w-md">
+            <AnimatedCard className="p-8 rounded-2xl bg-white/70 backdrop-blur-lg shadow-xl border border-white/40 hover:shadow-2xl transition-all duration-300 hover:-translate-y-0.5">
+              <div className="bg-gradient-to-r from-blue-500 to-indigo-500 h-1 rounded-t-2xl -mt-2 mb-6" />
+
               <div className="text-center">
                 <div className="flex items-center justify-center gap-2 mb-2">
-                  <Shield className="w-5 h-5 text-blue-600" />
+                  <Lock className="w-5 h-5 text-blue-600" />
                   <h2 className="text-2xl font-semibold text-foreground">Sign in with an SSO Provider</h2>
                 </div>
                 <p className="text-sm text-muted-foreground">
@@ -94,7 +109,6 @@ export function LoginPageContent({ providersConfigured, configuredProviders }: L
                 </p>
               </div>
 
-              {/* Disabled explanation */}
               {disabledExplanation ? (
                 <Alert variant="destructive" className="mt-6">
                   <AlertTitle>{disabledExplanation.title}</AlertTitle>
@@ -102,63 +116,56 @@ export function LoginPageContent({ providersConfigured, configuredProviders }: L
                 </Alert>
               ) : null}
 
-              {/* SSO buttons with gentle hover effect */}
               <div className="flex flex-col gap-3 mt-6">
-                <HoverEffect>
-                  <SSOLoginButton provider="github" onFlowStart={handleAuthFlowStart} disabled={!providersConfigured} />
-                </HoverEffect>
-                <HoverEffect>
-                  <SSOLoginButton provider="google" onFlowStart={handleAuthFlowStart} disabled={!providersConfigured} />
-                </HoverEffect>
+                <SSOLoginButton provider="github" onFlowStart={handleAuthFlowStart} disabled={!providersConfigured} />
+                <SSOLoginButton provider="google" onFlowStart={handleAuthFlowStart} disabled={!providersConfigured} />
               </div>
 
-              {/* Diagram of OAuth flow */}
-              <div className="flex items-center justify-center gap-2 mt-8 text-muted-foreground">
-                <Laptop className="w-5 h-5" />
-                <ArrowRight className="w-4 h-4" />
-                <Server className="w-5 h-5" />
+              {/* Visual separator */}
+              <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent my-6" />
+
+              {/* Icon flow summary */}
+              <div className="flex justify-center items-center gap-3 text-gray-500 mt-2 text-sm">
+                <User className="w-5 h-5" />
                 <ArrowRight className="w-4 h-4" />
                 <Key className="w-5 h-5" />
                 <ArrowRight className="w-4 h-4" />
-                <Database className="w-5 h-5" />
+                <Server className="w-5 h-5" />
+                <ArrowRight className="w-4 h-4" />
+                <Shield className="w-5 h-5" />
               </div>
-              <p className="text-sm text-muted-foreground mt-2 text-center">
-                Client → Authorization Server → Access Token → Resource Server
-              </p>
-
-              {/* Dashboard hint */}
-              <p className="text-sm text-muted-foreground mt-6 text-center">
-                After signing in, go to the {" "}
-                <Link href="/dashboard" className="underline font-medium text-blue-600 hover:text-blue-800">
-                  Dashboard
-                </Link>{" "}
-                to view the real OAuth message trace.
+              <p className="text-xs text-muted-foreground mt-2 text-center">
+                Client → Access Token → Authorization/Resource Servers
               </p>
             </AnimatedCard>
-          </FadeInOnScroll>
 
-          {/* Hint banner linking to Dashboard */}
+            {/* Tip box */}
+            <div className="mt-6 p-4 bg-blue-50/80 border-l-4 border-blue-400 rounded-md text-blue-900 flex items-start gap-3">
+              <Info className="w-5 h-5 mt-0.5 text-blue-500" />
+              <p>
+                Once signed in, open the
+                <Link href="/dashboard" className="font-semibold underline text-blue-700 hover:text-blue-800 ml-1">
+                  Dashboard
+                </Link>
+                to explore the real OAuth 2.0 message trace.
+              </p>
+            </div>
+          </div>
+        </FadeInOnScroll>
+
+        {/* Info cards */}
+        <FadeInOnScroll>
+          <h3 className="text-2xl font-semibold mb-6 text-gray-900 text-center">How this works</h3>
+        </FadeInOnScroll>
+
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 items-start">
+          {/* Roles */}
           <FadeInOnScroll>
-            <Alert className="max-w-2xl mx-auto bg-blue-50 border-blue-200 mt-8">
-            <AlertDescription>
-              ✅ Once you’ve signed in, go to the
-              {" "}
-              <Link href="/dashboard" className="font-semibold underline text-blue-600 hover:text-blue-700">
-                Dashboard
-              </Link>
-              {" "}
-              to explore the real OAuth 2.0 message trace in detail.
-            </AlertDescription>
-            </Alert>
-          </FadeInOnScroll>
-
-          {/* Understanding the Flow: Roles and Phases */}
-          <div className="grid md:grid-cols-2 gap-8 mt-10">
-            <FadeInOnScroll>
-              <Card className="p-6 rounded-xl border border-l-4 border-l-blue-400 bg-blue-50">
+            <Card className="h-full p-6 rounded-xl bg-white/80 backdrop-blur border border-white/60 shadow-sm hover:shadow-lg hover:scale-[1.01] transition-all duration-200 relative overflow-hidden">
+              <div className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-blue-500 to-indigo-500" />
               <div className="flex items-center gap-2 mb-3">
-                <BookOpen className="w-5 h-5 text-blue-500" />
-                <h3 className="text-lg font-semibold text-foreground">Roles in the OAuth 2.0 Flow</h3>
+                <BookOpen className="w-5 h-5 text-blue-600" />
+                <h4 className="text-lg font-semibold text-foreground">Roles in the OAuth 2.0 Flow</h4>
               </div>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li>👤 <b>Resource Owner:</b> The user who grants authorization.</li>
@@ -166,14 +173,16 @@ export function LoginPageContent({ providersConfigured, configuredProviders }: L
                 <li>🔐 <b>Authorization Server:</b> Manages user authentication (e.g., Google, GitHub).</li>
                 <li>📦 <b>Resource Server:</b> Hosts the protected data (e.g., user profile).</li>
               </ul>
-              </Card>
-            </FadeInOnScroll>
+            </Card>
+          </FadeInOnScroll>
 
-            <FadeInOnScroll>
-              <Card className="p-6 rounded-xl border border-l-4 border-l-indigo-400 bg-indigo-50">
+          {/* Phases */}
+          <FadeInOnScroll>
+            <Card className="h-full p-6 rounded-xl bg-white/80 backdrop-blur border border-white/60 shadow-sm hover:shadow-lg hover:scale-[1.01] transition-all duration-200 relative overflow-hidden">
+              <div className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-indigo-500 to-purple-500" />
               <div className="flex items-center gap-2 mb-3">
-                <Layers className="w-5 h-5 text-indigo-500" />
-                <h3 className="text-lg font-semibold text-foreground">Phases of the Authentication Flow</h3>
+                <Layers className="w-5 h-5 text-indigo-600" />
+                <h4 className="text-lg font-semibold text-foreground">Phases of the Authentication Flow</h4>
               </div>
               <ol className="list-decimal list-inside text-sm text-muted-foreground space-y-1">
                 <li>The client redirects the user to the chosen provider.</li>
@@ -181,17 +190,16 @@ export function LoginPageContent({ providersConfigured, configuredProviders }: L
                 <li>The provider returns an <code>authorization code</code>.</li>
                 <li>The app exchanges the code for an <code>access token</code> and creates the local session.</li>
               </ol>
-              </Card>
-            </FadeInOnScroll>
-          </div>
+            </Card>
+          </FadeInOnScroll>
 
-          {/* Educational Notes / Tips */}
-          <div className="mt-8">
-            <FadeInOnScroll>
-              <Card className="p-6 rounded-xl border border-l-4 border-l-teal-400 bg-teal-50">
+          {/* What to observe – full width */}
+          <FadeInOnScroll>
+            <Card className="md:col-span-2 h-full p-6 rounded-xl bg-white/80 backdrop-blur border border-white/60 shadow-sm hover:shadow-lg hover:scale-[1.005] transition-all duration-200 relative overflow-hidden">
+              <div className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-teal-500 to-emerald-500" />
               <div className="flex items-center gap-2 mb-3">
                 <Eye className="w-5 h-5 text-teal-600" />
-                <h3 className="text-lg font-semibold text-foreground">What to Observe During the Flow</h3>
+                <h4 className="text-lg font-semibold text-foreground">What to Observe During the Flow</h4>
               </div>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li>🔄 Watch for redirects and URL changes.</li>
@@ -199,15 +207,14 @@ export function LoginPageContent({ providersConfigured, configuredProviders }: L
                 <li>🛡️ Notice when the local session is created.</li>
                 <li>➡️ After login, the Dashboard shows the real message timeline of the OAuth flow.</li>
               </ul>
-              </Card>
-            </FadeInOnScroll>
-          </div>
+            </Card>
+          </FadeInOnScroll>
 
-          {/* SSO benefits and configuration */}
-          <div className="grid md:grid-cols-2 gap-8 mt-8">
-            <FadeInOnScroll>
-              <Card className="p-6 rounded-xl border bg-emerald-50 border-emerald-200">
-              <h3 className="font-semibold mb-3 text-foreground">Advantages of Single Sign-On (SSO)</h3>
+          {/* Advantages */}
+          <FadeInOnScroll>
+            <Card className="h-full p-6 rounded-xl bg-white/80 backdrop-blur border border-white/60 shadow-sm hover:shadow-lg hover:scale-[1.01] transition-all duration-200 relative overflow-hidden">
+              <div className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-emerald-500 to-green-600" />
+              <h4 className="font-semibold mb-3 text-foreground">Advantages of Single Sign-On (SSO)</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li className="flex items-start gap-2">
                   <span className="text-emerald-600 mt-0.5">✓</span>
@@ -226,12 +233,14 @@ export function LoginPageContent({ providersConfigured, configuredProviders }: L
                   <span>Reduced risk of phishing and credential leaks.</span>
                 </li>
               </ul>
-              </Card>
-            </FadeInOnScroll>
+            </Card>
+          </FadeInOnScroll>
 
-            <FadeInOnScroll>
-              <Card className="p-6 rounded-xl border bg-gray-50 border-gray-200">
-              <h3 className="font-semibold mb-3 text-foreground">Configured Providers</h3>
+          {/* Configured providers */}
+          <FadeInOnScroll>
+            <Card className="h-full w-lg self-start p-6 rounded-xl bg-white/80 backdrop-blur border border-white/60 shadow-sm hover:shadow-lg hover:scale-[1.01] transition-all duration-200 relative overflow-hidden">
+              <div className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-blue-500 to-purple-500" />
+              <h4 className="font-semibold mb-3 text-foreground">Configured Providers</h4>
               <div className="flex flex-wrap gap-2">
                 <Badge variant={configuredBadgeVariants("github")} className="flex items-center gap-1">
                   <Github className="w-4 h-4" /> GitHub
@@ -242,27 +251,20 @@ export function LoginPageContent({ providersConfigured, configuredProviders }: L
               </div>
               <Separator className="my-4" />
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Set the environment variables <code>GITHUB_ID</code>, <code>GITHUB_SECRET</code>,{" "}
-                <code>GOOGLE_CLIENT_ID</code> and <code>GOOGLE_CLIENT_SECRET</code> to enable the respective providers.
+                Set the environment variables <code>GITHUB_ID</code>, <code>GITHUB_SECRET</code>, <code>GOOGLE_CLIENT_ID</code> and
+                <code> GOOGLE_CLIENT_SECRET</code> to enable the respective providers.
               </p>
-              </Card>
-            </FadeInOnScroll>
-          </div>
+            </Card>
+          </FadeInOnScroll>
+        </section>
 
-          {/* Footer note */}
-          <footer className="text-center mt-12 text-xs text-muted-foreground border-t pt-6">
-            Educational demo — built with <span className="font-semibold">NextAuth & OAuth 2.0</span>
-            {" "}·{" "}
-            <a
-              href="https://github.com/HellNF/auth-site-SDElab"
-              target="_blank"
-              rel="noreferrer noopener"
-              className="underline text-blue-600 hover:text-blue-700"
-            >
-              View source
-            </a>
-          </footer>
-        </div>
+        {/* Footer */}
+        <footer className="text-center mt-12 text-sm text-gray-500">
+          Educational demo — built with <span className="text-blue-600 font-medium">NextAuth & OAuth 2.0</span> ·
+          <Link href="https://github.com/HellNF/auth-site-SDElab" className="hover:underline ml-1" target="_blank" rel="noreferrer noopener">
+            View source
+          </Link>
+        </footer>
       </div>
     </main>
   )
