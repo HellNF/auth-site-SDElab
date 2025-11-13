@@ -16,6 +16,7 @@ type TraceEntry = {
   timestamp: number
   provider?: string
   hint?: string
+  kind?: "http-request" | "http-response" | "callback" | "event"
 }
 
 const oauthTrace: TraceEntry[] = []
@@ -334,6 +335,7 @@ export const authOptions: NextAuthOptions = {
         direction: "client→provider",
         method: "GET",
         endpoint: message.account?.provider ?? "unknown provider",
+        kind: "event",
         provider: message.account?.provider,
         payload: { message },
       })
@@ -343,6 +345,7 @@ export const authOptions: NextAuthOptions = {
         direction: "server→client",
         method: "SET-COOKIE",
         endpoint: "/api/auth/session",
+        kind: "event",
         response: { session, token },
       })
     },
@@ -351,6 +354,7 @@ export const authOptions: NextAuthOptions = {
         direction: "client→server",
         method: "POST",
         endpoint: "/api/auth/signout",
+        kind: "event",
         provider: (message as any)?.account?.provider,
         payload: message,
       })
@@ -366,6 +370,7 @@ export const authOptions: NextAuthOptions = {
           direction: "server→provider",
           method: "TOKEN RESPONSE",
           endpoint: "provider_token",
+          kind: "callback",
           provider: account.provider,
           response: account, // reale, non mascherato
         })
@@ -373,8 +378,9 @@ export const authOptions: NextAuthOptions = {
       if (profile) {
         logOAuthMessage({
           direction: "provider→server",
-          method: "PROFILE",
-          endpoint: "user_profile",
+          method: "PROFILE CALLBACK",
+          endpoint: "user_profile_callback",
+          kind: "callback",
           provider: account?.provider,
           response: profile,
         })
@@ -409,6 +415,7 @@ if (typeof window === "undefined") {
       direction: "server→provider",
       method,
       endpoint: typeof url === "string" ? url : (url as any)?.toString?.() ?? "unknown",
+      kind: "http-request",
       provider: guessProviderFromEndpoint(typeof url === "string" ? url : (url as any)?.toString?.() ?? ""),
       payload: options?.body ?? null,
       headers: options?.headers ? Object.fromEntries(Object.entries(options.headers)) : {},
@@ -422,6 +429,7 @@ if (typeof window === "undefined") {
       direction: "provider→server",
       method,
       endpoint: typeof url === "string" ? url : (url as any)?.toString?.() ?? "unknown",
+       kind: "http-response",
       provider: guessProviderFromEndpoint(typeof url === "string" ? url : (url as any)?.toString?.() ?? ""),
       response: cloned.body,
       headers: cloned.headers,
