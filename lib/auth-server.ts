@@ -279,7 +279,7 @@ export function logOAuthMessage(e: Omit<TraceEntry, "timestamp">) {
   // enrich with provider + hint
   const providerId = entry.provider || guessProviderFromEndpoint(entry.endpoint)
   const providerLabel = labelProvider(providerId)
-  const hint = computeHint({ ...entry, provider: providerId }, providerLabel)
+  const hint = entry.hint ?? computeHint({ ...entry, provider: providerId }, providerLabel)
   // sanitize sensitive data before storing
   const safeEntry: TraceEntry = {
     ...entry,
@@ -294,7 +294,11 @@ export function logOAuthMessage(e: Omit<TraceEntry, "timestamp">) {
   console.log(`[TRACE] ${entry.direction} ${entry.method} ${entry.endpoint}`)
 }
 
-export const getOAuthTrace = () => oauthTrace
+export const getOAuthTrace = () => {
+  const out = oauthTrace.slice().sort((a, b) => a.timestamp - b.timestamp)
+  oauthTrace.length = 0
+  return out
+}
 export const clearTrace = () => void (oauthTrace.length = 0)
 
 // ---------------------------------------
@@ -334,22 +338,32 @@ export const authOptions: NextAuthOptions = {
   events: {
     async signIn(message: any) {
       logOAuthMessage({
-        direction: "client→provider",
-        method: "GET",
+        direction: "server→client",
+        method: "SIGNIN COMPLETED",
         endpoint: message.account?.provider ?? "unknown provider",
         kind: "event",
         provider: message.account?.provider,
-        payload: { message },
+        payload: {
+          user: message.user,
+          account: message.account,
+          profile: (message as any)?.profile ?? null,
+        },
+        hint: "NextAuth signIn event: OAuth login completed and user/account/profile are ready.",
       })
 
       traceAuth({
-        direction: "client→server",
-        step: "SignIn Event",
+        direction: "server→client",
+        step: "SignIn Completed",
         endpoint: "events.signIn",
         kind: "event",
         provider: message.account?.provider,
-        message,
-        hint: "User successfully signed in (NextAuth event).",
+        message: {
+          user: message.user,
+          account: message.account,
+          profile: (message as any)?.profile ?? null,
+          isNewUser: (message as any)?.isNewUser ?? undefined,
+        },
+        hint: "NextAuth emitted signIn: downstream state is ready for dashboard rendering.",
       })
     },
     async session({ session, token }: any) {
@@ -359,6 +373,7 @@ export const authOptions: NextAuthOptions = {
         endpoint: "/api/auth/session",
         kind: "event",
         response: { session, token },
+        hint: "Establishing authenticated session and sending cookie to the browser.",
       })
 
       traceAuth({
@@ -379,6 +394,7 @@ export const authOptions: NextAuthOptions = {
         kind: "event",
         provider: (message as any)?.account?.provider,
         payload: message,
+        hint: "User initiated sign-out.",
       })
       clearTrace()
 
