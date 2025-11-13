@@ -17,6 +17,8 @@ type TraceEntry = {
   provider?: string
   hint?: string
   kind?: "http-request" | "http-response" | "callback" | "event"
+  step?: string
+  message?: Record<string, unknown>
 }
 
 const oauthTrace: TraceEntry[] = []
@@ -339,6 +341,16 @@ export const authOptions: NextAuthOptions = {
         provider: message.account?.provider,
         payload: { message },
       })
+
+      traceAuth({
+        direction: "client→server",
+        step: "SignIn Event",
+        endpoint: "events.signIn",
+        kind: "event",
+        provider: message.account?.provider,
+        message,
+        hint: "User successfully signed in (NextAuth event).",
+      })
     },
     async session({ session, token }: any) {
       logOAuthMessage({
@@ -347,6 +359,16 @@ export const authOptions: NextAuthOptions = {
         endpoint: "/api/auth/session",
         kind: "event",
         response: { session, token },
+      })
+
+      traceAuth({
+        direction: "server→client",
+        step: "Session Event",
+        endpoint: "events.session",
+        kind: "event",
+        provider: undefined,
+        message: { session, token },
+        hint: "Session is active/updated (NextAuth event).",
       })
     },
     async signOut(message: any) {
@@ -358,8 +380,17 @@ export const authOptions: NextAuthOptions = {
         provider: (message as any)?.account?.provider,
         payload: message,
       })
-      // Reset the in-memory OAuth trace on successful sign-out
       clearTrace()
+
+      traceAuth({
+        direction: "client→server",
+        step: "SignOut Event",
+        endpoint: "events.signOut",
+        kind: "event",
+        provider: (message as any)?.account?.provider,
+        message,
+        hint: "User initiated sign-out; in-memory OAuth trace cleared.",
+      })
     },
   },
 
@@ -390,6 +421,17 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       // includo il token nella session (utile per debug)
       ;(session as any).token = token
+
+      traceAuth({
+        direction: "server→client",
+        step: "Session Callback",
+        endpoint: "callbacks.session",
+        kind: "callback",
+        provider: undefined,
+        message: { session, token },
+        hint: "Builds the session object exposed to the client (Dashboard).",
+      })
+
       return session
     },
   },
@@ -438,4 +480,52 @@ if (typeof window === "undefined") {
 
     return response
   }) as typeof fetch
+}
+
+// ---------------------------------------
+// Tipi e funzioni per il logging degli eventi
+// ---------------------------------------
+type LogTraceKind = "event" | "callback"
+
+type LogEntry = {
+  direction: string
+  step: string
+  endpoint: string
+  kind: LogTraceKind
+  provider?: string
+  message: Record<string, unknown>
+  timestamp: string
+  hint: string
+}
+
+/**
+ * Usa sanitizeObject/maskIfSecret già presenti per mascherare campi sensibili
+ * dentro un oggetto di log generico.
+ */
+function maskSensitiveDataForLog<T>(value: T): T {
+  if (value == null) return value
+  if (typeof value === "string") {
+    // riusa già la logica per stringhe raw
+    return maskIfSecret(undefined, value) as T
+  }
+  if (Array.isArray(value)) {
+    return value.map((v) => maskSensitiveDataForLog(v)) as unknown as T
+  }
+  if (typeof value === "object") {
+    return sanitizeObject(value as Record<string, unknown>) as unknown as T
+  }
+  return value
+}
+
+function traceAuth(entry: Omit<LogEntry, "timestamp">) {
+  const timestamp = new Date().toISOString()
+  const safeMessage = maskSensitiveDataForLog(entry.message)
+  const log: LogEntry = {
+    ...entry,
+    timestamp,
+    message: safeMessage,
+  }
+
+  // single-line JSON, ben leggibile
+  console.log(JSON.stringify(log))
 }
