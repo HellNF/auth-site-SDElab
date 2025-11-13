@@ -20,6 +20,11 @@ type TraceEntry = {
 
 const oauthTrace: TraceEntry[] = []
 
+// Flag di laboratorio per esporre i segreti nel trace (DISABILITATO di default)
+// Abilita impostando OAUTH_TRACE_EXPOSE_SECRETS=true nell'ambiente di sviluppo.
+// ATTENZIONE: NON usare in produzione.
+const EXPOSE_SECRETS = process.env.OAUTH_TRACE_EXPOSE_SECRETS === "true"
+
 // =============================
 // Secret masking utilities
 // =============================
@@ -59,7 +64,25 @@ function partialMask(value: string): string {
   return `${value.slice(0, 12)}********${value.slice(-6)}`
 }
 
+// Mask comuni dentro stringhe raw (JSON o x-www-form-urlencoded)
+function maskSecretsInString(input: string): string {
+  let out = input
+  // JSON style: "access_token":"..."
+  out = out.replace(/("(?:access_token|refresh_token|id_token)"\s*:\s*")([^"\n]+)(")/gi, (_m, p1, val, p3) => {
+    return `${p1}${partialMask(val)}${p3}`
+  })
+  // urlencoded style: access_token=...
+  out = out.replace(/\b(access_token|refresh_token|id_token)=([^&\s]+)/gi, (_m, k, v) => {
+    return `${k}=${partialMask(v)}`
+  })
+  // Authorization: Bearer token
+  out = out.replace(/\bBearer\s+([A-Za-z0-9._-]+)/g, (_m, v) => `Bearer ${partialMask(v)}`)
+  return out
+}
+
 function maskIfSecret(key: string | undefined, val: unknown): unknown {
+  // In modalità educativa (flag attivo) non mascheriamo nulla
+  if (EXPOSE_SECRETS) return val
   if (val == null) return val
   if (typeof val === "string") {
     // Mask by key name
@@ -79,7 +102,8 @@ function maskIfSecret(key: string | undefined, val: unknown): unknown {
         masked = masked.split(secret).join(partialMask(secret))
       }
     }
-    return masked
+    // Maschera pattern comuni di token anche dentro stringhe raw
+    return maskSecretsInString(masked)
   }
   if (Array.isArray(val)) return val.map((v) => maskIfSecret(key, v))
   if (typeof val === "object") return sanitizeObject(val as Record<string, unknown>)
@@ -87,6 +111,8 @@ function maskIfSecret(key: string | undefined, val: unknown): unknown {
 }
 
 function sanitizeObject(obj: Record<string, unknown>): Record<string, unknown> {
+  // In modalità educativa (flag attivo) ritorniamo l'oggetto così com'è
+  if (EXPOSE_SECRETS) return obj
   const out: Record<string, unknown> = Array.isArray(obj) ? [] as any : {}
   for (const [k, v] of Object.entries(obj)) {
     out[k] = maskIfSecret(k, v)
