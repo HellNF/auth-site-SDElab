@@ -24,6 +24,7 @@ type OAuthMessage = {
     | "server→client"
   endpoint: string
   method: string
+  kind?: "http-request" | "http-response" | "callback" | "event"
   payload?: Record<string, any>
   response?: Record<string, any>
   headers?: Record<string, any>
@@ -31,6 +32,21 @@ type OAuthMessage = {
   timestamp: number
   provider?: string
   hint?: string
+}
+
+function kindLabel(kind: OAuthMessage["kind"]): { label: string; className: string } {
+  switch (kind) {
+    case "http-request":
+      return { label: "HTTP Request", className: "bg-sky-100 text-sky-800 border border-sky-200" }
+    case "http-response":
+      return { label: "HTTP Response", className: "bg-emerald-100 text-emerald-800 border border-emerald-200" }
+    case "callback":
+      return { label: "Callback", className: "bg-purple-100 text-purple-800 border border-purple-200" }
+    case "event":
+      return { label: "Event", className: "bg-amber-100 text-amber-900 border border-amber-200" }
+    default:
+      return { label: "Message", className: "bg-gray-100 text-gray-800 border border-gray-200" }
+  }
 }
 
 function directionColor(direction: OAuthMessage["direction"]) {
@@ -126,7 +142,7 @@ export default function OAuthTraceViewer() {
             Real OAuth Message Flow
           </h3>
           <p className="text-sm text-muted-foreground max-w-[650px]">
-            This section shows the actual HTTP requests exchanged between this app, the OAuth provider, and your browser during authentication.
+            This section shows the actual HTTP requests and the main internal NextAuth callbacks/events involved in the OAuth flow.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -172,9 +188,17 @@ export default function OAuthTraceViewer() {
                   <AccordionTrigger className="px-4 py-2 hover:no-underline">
                     <div className="w-full text-left">
                       <div className="flex items-center justify-between mb-1">
-                        <Badge className={`px-2.5 py-0.5 ${directionColor(msg.direction)}`}>
-                          {msg.direction}
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                          <Badge className={`px-2.5 py-0.5 ${directionColor(msg.direction)}`}>
+                            {msg.direction}
+                          </Badge>
+                          <Badge
+                            variant="outline"
+                            className={`px-2.5 py-0.5 text-[10px] uppercase tracking-wide ${kindLabel(msg.kind).className}`}
+                          >
+                            {kindLabel(msg.kind).label}
+                          </Badge>
+                        </div>
                         <span className="text-xs text-muted-foreground">
                           {new Date(msg.timestamp).toLocaleTimeString()}
                         </span>
