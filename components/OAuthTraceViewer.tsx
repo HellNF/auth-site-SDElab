@@ -109,18 +109,8 @@ export default function OAuthTraceViewer() {
     setLoading(true)
     const res = await fetch("/api/auth/trace", { cache: "no-store" })
     const data = (await res.json()) as OAuthMessage[]
-    // filter out unconfirmed sign-outs to avoid misleading UI
-    const filtered = data.filter((m) => {
-      const ep = m.endpoint?.toLowerCase?.() || ""
-      if (ep.includes("/api/auth/signout")) {
-        const hint = (m.hint || "").toLowerCase()
-        // only show if server marked as confirmed
-        return hint.includes("confirmed")
-      }
-      return true
-    })
-    // sort by time ascending
-    setTrace(filtered.slice().sort((a, b) => a.timestamp - b.timestamp))
+    // sort by time ascending (no filtering: show everything captured server-side)
+    setTrace(data.slice().sort((a, b) => a.timestamp - b.timestamp))
     setLoading(false)
   }
 
@@ -144,6 +134,14 @@ export default function OAuthTraceViewer() {
           <p className="text-sm text-muted-foreground max-w-[650px]">
             This section shows the actual HTTP requests and the main internal NextAuth callbacks/events involved in the OAuth flow.
           </p>
+          <div className="text-xs text-muted-foreground mt-2 space-y-1">
+            <p>
+              <span className="text-foreground font-semibold">Direction badge</span>: who is talking to whom (client, server, provider).
+            </p>
+            <p>
+              <span className="text-foreground font-semibold">Kind badge</span>: nature of the entry (HTTP request/response, NextAuth callback, or high-level event).
+            </p>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <Button size="sm" variant="secondary" onClick={() => setShowRaw((s) => !s)}>
