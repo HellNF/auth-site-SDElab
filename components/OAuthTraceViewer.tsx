@@ -14,6 +14,14 @@ import {
 } from "@/components/ui/accordion"
 import { ArrowRightLeft } from "lucide-react"
 
+type StageType =
+  | "user-action"
+  | "oauth-auth-code"
+  | "oauth-token"
+  | "oauth-profile"
+  | "nextauth-signin"
+  | "session-lifecycle"
+
 type OAuthMessage = {
   direction:
     | "client→provider"
@@ -24,7 +32,7 @@ type OAuthMessage = {
     | "server→client"
   endpoint: string
   method: string
-  kind?: "http-request" | "http-response" | "callback" | "event"
+  stageType?: StageType
   payload?: Record<string, any>
   response?: Record<string, any>
   headers?: Record<string, any>
@@ -34,19 +42,42 @@ type OAuthMessage = {
   hint?: string
 }
 
-function kindLabel(kind: OAuthMessage["kind"]): { label: string; className: string } {
-  switch (kind) {
-    case "http-request":
-      return { label: "HTTP Request", className: "bg-sky-100 text-sky-800 border border-sky-200" }
-    case "http-response":
-      return { label: "HTTP Response", className: "bg-emerald-100 text-emerald-800 border border-emerald-200" }
-    case "callback":
-      return { label: "Callback", className: "bg-purple-100 text-purple-800 border border-purple-200" }
-    case "event":
-      return { label: "Event", className: "bg-amber-100 text-amber-900 border border-amber-200" }
-    default:
-      return { label: "Message", className: "bg-gray-100 text-gray-800 border border-gray-200" }
-  }
+const STAGE_TYPE_META: Record<StageType, { label: string; description: string; className: string }> = {
+  "user-action": {
+    label: "User Action",
+    description: "Client clicks (sign-in/out) before OAuth redirects start.",
+    className: "bg-blue-100 text-blue-900 border border-blue-200",
+  },
+  "oauth-auth-code": {
+    label: "Auth Code",
+    description: "Redirects + exchanges tied to the authorization code grant.",
+    className: "bg-amber-100 text-amber-900 border border-amber-200",
+  },
+  "oauth-token": {
+    label: "Token",
+    description: "Back-channel calls to exchange codes/refresh tokens.",
+    className: "bg-emerald-100 text-emerald-900 border border-emerald-200",
+  },
+  "oauth-profile": {
+    label: "Profile",
+    description: "Requests for userinfo/profile data after token exchange.",
+    className: "bg-purple-100 text-purple-900 border border-purple-200",
+  },
+  "nextauth-signin": {
+    label: "NextAuth",
+    description: "Server-side events/callbacks that finalize the sign-in.",
+    className: "bg-slate-100 text-slate-900 border border-slate-200",
+  },
+  "session-lifecycle": {
+    label: "Session",
+    description: "API calls that create, update, or destroy the NextAuth session.",
+    className: "bg-rose-100 text-rose-900 border border-rose-200",
+  },
+}
+
+function stageTypeBadge(stageType?: StageType) {
+  if (!stageType) return { label: "Misc", className: "bg-gray-100 text-gray-900 border border-gray-200" }
+  return STAGE_TYPE_META[stageType]
 }
 
 function directionColor(direction: OAuthMessage["direction"]) {
@@ -69,22 +100,63 @@ function directionColor(direction: OAuthMessage["direction"]) {
 }
 
 function simplifyMessage(msg: OAuthMessage): string {
-  const { endpoint, method } = msg
-  if (endpoint.includes("authorize")) return "Request user authorization"
-  if (endpoint.includes("callback") && method === "GET")
+  const { endpoint, method, stageType } = msg
+  if (stageType) {
+    switch (stageType) {
+      case "user-action":
+        return "User initiated sign-in"
+      case "oauth-auth-code":
+        if (method === "REDIRECT" && msg.direction === "provider→server") {
+          return "Provider redirected back with authorization code"
+        }
+        if (method === "REDIRECT" && msg.direction === "server→client") {
+          return "App redirecting browser to provider"
+        }
+        return "Authorization-code redirect/exchange"
+      case "oauth-token":
+        return "Token exchange or refresh call"
+      case "oauth-profile":
+        return "Fetch user profile claims"
+      case "session-lifecycle":
+        return "Session API call"
+      case "nextauth-signin":
+        return "NextAuth sign-in event"
+    }
+  }
+  const { endpoint: rawEndpoint, method: httpMethod } = msg
+  const endpointToUse = rawEndpoint ?? ""
+  if (endpointToUse.includes("authorize")) return "Request user authorization"
+  if (endpointToUse.includes("callback") && httpMethod === "GET")
     return "Provider callback with authorization code"
-  if (endpoint.includes("access_token")) return "Exchange authorization code for access token"
-  if (endpoint.includes("callback") && (method.includes("SET-COOKIE") || method === "302"))
+  if (endpointToUse.includes("access_token")) return "Exchange authorization code for access token"
+  if (endpointToUse.includes("callback") && (httpMethod.includes("SET-COOKIE") || httpMethod === "302"))
     return "Set session cookie and redirect user"
-  if (endpoint.includes("session") && method === "GET") return "Check current user session"
-  if (endpoint.includes("user") && method === "GET") return "Fetch user profile data"
-  return `${method} ${endpoint}`
+  if (endpointToUse.includes("session") && httpMethod === "GET") return "Check current user session"
+  if (endpointToUse.includes("user") && httpMethod === "GET") return "Fetch user profile data"
+  return `${httpMethod} ${endpointToUse}`
 }
 
 // Short English explanation for each main phase
 function phaseHint(msg: OAuthMessage): string {
-  const { endpoint, method } = msg
-  const url = endpoint.toLowerCase()
+  if (msg.stageType) {
+    switch (msg.stageType) {
+      case "user-action":
+        return "User clicked a login-related control inside the app."
+      case "oauth-auth-code":
+        return "The browser and provider exchange the authorization code."
+      case "oauth-token":
+        return "Server-to-server request exchanging codes for tokens."
+      case "oauth-profile":
+        return "Server fetching profile details (userinfo) with the access token."
+      case "nextauth-signin":
+        return "NextAuth callbacks finalizing persistence and events."
+      case "session-lifecycle":
+        return "Client or server verifying/updating the session cookie."
+    }
+  }
+  const endpointValue = msg.endpoint ?? ""
+  const { method } = msg
+  const url = endpointValue.toLowerCase()
   if (url.includes("authorize"))
     return "The app redirects you to the provider to request consent and scopes."
   if (url.includes("callback") && method === "GET")
@@ -139,8 +211,19 @@ export default function OAuthTraceViewer() {
               <span className="text-foreground font-semibold">Direction badge</span>: who is talking to whom (client, server, provider).
             </p>
             <p>
-              <span className="text-foreground font-semibold">Kind badge</span>: nature of the entry (HTTP request/response, NextAuth callback, or high-level event).
+              <span className="text-foreground font-semibold">Stage badge</span>: categorizes each entry (user action, auth-code redirect, token exchange, profile fetch, session, or NextAuth callback).
             </p>
+          </div>
+          <div className="mt-3 rounded-lg border border-gray-100 bg-muted/40 p-3">
+            <p className="text-xs font-semibold text-foreground uppercase tracking-wide">Stage legend</p>
+            <div className="mt-2 grid gap-2 sm:grid-cols-2">
+              {Object.entries(STAGE_TYPE_META).map(([key, meta]) => (
+                <div key={key} className="flex items-start gap-2 text-left">
+                  <Badge className={`px-2 py-0.5 ${meta.className}`}>{meta.label}</Badge>
+                  <p className="text-xs text-muted-foreground leading-snug">{meta.description}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -168,10 +251,12 @@ export default function OAuthTraceViewer() {
             </p>
           ) : (
             <Accordion type="multiple" className="w-full">
-              {trace.map((msg, idx) => (
-                <AccordionItem
-                  value={`${msg.timestamp}-${idx}`}
-                  key={`${msg.timestamp}-${idx}`}
+              {trace.map((msg, idx) => {
+                const stageMeta = stageTypeBadge(msg.stageType)
+                return (
+                  <AccordionItem
+                    value={`${msg.timestamp}-${idx}`}
+                    key={`${msg.timestamp}-${idx}`}
                   className="rounded-lg mb-3 border border-gray-100 shadow-sm"
                   style={{
                     borderLeft: `4px solid ${
@@ -192,9 +277,9 @@ export default function OAuthTraceViewer() {
                           </Badge>
                           <Badge
                             variant="outline"
-                            className={`px-2.5 py-0.5 text-[10px] uppercase tracking-wide ${kindLabel(msg.kind).className}`}
+                            className={`px-2.5 py-0.5 text-[10px] uppercase tracking-wide ${stageMeta.className}`}
                           >
-                            {kindLabel(msg.kind).label}
+                            {stageMeta.label}
                           </Badge>
                         </div>
                         <span className="text-xs text-muted-foreground">
@@ -255,7 +340,8 @@ export default function OAuthTraceViewer() {
                     )}
                   </AccordionContent>
                 </AccordionItem>
-              ))}
+                )
+              })}
             </Accordion>
           )}
         </ScrollArea>

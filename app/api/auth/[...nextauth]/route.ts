@@ -28,7 +28,7 @@ async function authHandler(request: NextRequest, context: RouteContext) {
 			direction: "client→server",
 			method: "SIGNIN",
 			endpoint: "/api/auth/signin",
-			kind: "event",
+			stageType: "user-action",
 			provider,
 			hint: `User triggered sign-in with ${providerLabelText} from the client.`,
 		})
@@ -39,7 +39,7 @@ async function authHandler(request: NextRequest, context: RouteContext) {
 			direction: "client→server",
 			method: "GET",
 			endpoint: "/api/auth/session",
-			kind: "event",
+			stageType: "session-lifecycle",
 			hint: "Client is fetching the current session (e.g. useSession()).",
 		})
 	}
@@ -49,7 +49,7 @@ async function authHandler(request: NextRequest, context: RouteContext) {
 			direction: "provider→server",
 			method: "REDIRECT",
 			endpoint: `/api/auth/callback/${provider}`,
-			kind: "event",
+			stageType: "oauth-auth-code",
 			provider,
 			hint: `${providerLabelText} redirected back with an authorization code.`,
 		})
@@ -64,7 +64,7 @@ async function authHandler(request: NextRequest, context: RouteContext) {
 				direction: "server→client",
 				method: "REDIRECT",
 				endpoint: "/api/auth/signin",
-				kind: "event",
+				stageType: "oauth-auth-code",
 				provider,
 				response: { location },
 				hint: `NextAuth is redirecting the browser to the ${providerLabelText} authorization URL.`,
@@ -74,7 +74,7 @@ async function authHandler(request: NextRequest, context: RouteContext) {
 					direction: "client→provider",
 					method: "GET",
 					endpoint: location,
-					kind: "event",
+					stageType: "oauth-auth-code",
 					provider,
 					hint: `Browser opening ${providerLabelText} OAuth authorization page.`,
 				})
@@ -94,7 +94,7 @@ async function authHandler(request: NextRequest, context: RouteContext) {
 			direction: "server→client",
 			method: "SESSION RESPONSE",
 			endpoint: "/api/auth/session",
-			kind: "event",
+			stageType: "session-lifecycle",
 			response: { session: sessionPayload },
 			hint: "NextAuth returned the current session to the client.",
 		})

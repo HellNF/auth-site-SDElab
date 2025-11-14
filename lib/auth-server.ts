@@ -5,10 +5,19 @@ import GoogleProvider from "next-auth/providers/google"
 // =======================================
 // In-memory OAuth trace (solo per lab)
 // =======================================
+export type StageType =
+  | "user-action"
+  | "oauth-auth-code"
+  | "oauth-token"
+  | "oauth-profile"
+  | "nextauth-signin"
+  | "session-lifecycle"
+
 type TraceEntry = {
   direction: string
   method: string
   endpoint: string
+  stageType: StageType
   payload?: any
   response?: any
   headers?: Record<string, any>
@@ -16,7 +25,6 @@ type TraceEntry = {
   timestamp: number
   provider?: string
   hint?: string
-  kind?: "http-request" | "http-response" | "callback" | "event"
   step?: string
   message?: Record<string, unknown>
 }
@@ -138,6 +146,16 @@ function guessProviderFromEndpoint(endpoint: string): string | undefined {
   if (u.includes("github")) return "github"
   if (u.includes("googleapis") || u.includes("oauth2.googleapis.com") || u.includes("accounts.google.com") || u.includes("google")) return "google"
   return undefined
+}
+
+function inferStageType(endpoint: string, fallback: StageType = "oauth-token"): StageType {
+  const url = endpoint.toLowerCase()
+  if (url.includes("/session") || url.includes("session")) return "session-lifecycle"
+  if (url.includes("signout") || url.includes("sign-in")) return "session-lifecycle"
+  if (url.includes("authorize") || url.includes("/callback")) return "oauth-auth-code"
+  if (url.includes("userinfo") || /\buser(?:info)?\b/.test(url) || url.includes("profile")) return "oauth-profile"
+  if (url.includes("token")) return "oauth-token"
+  return fallback
 }
 
 function computeHint(entry: TraceEntry, providerLabel: string): string {
@@ -341,7 +359,7 @@ export const authOptions: NextAuthOptions = {
         direction: "server→client",
         method: "SIGNIN COMPLETED",
         endpoint: message.account?.provider ?? "unknown provider",
-        kind: "event",
+        stageType: "nextauth-signin",
         provider: message.account?.provider,
         payload: {
           user: message.user,
@@ -371,7 +389,7 @@ export const authOptions: NextAuthOptions = {
         direction: "server→client",
         method: "SET-COOKIE",
         endpoint: "/api/auth/session",
-        kind: "event",
+        stageType: "session-lifecycle",
         response: { session, token },
         hint: "Establishing authenticated session and sending cookie to the browser.",
       })
@@ -391,7 +409,7 @@ export const authOptions: NextAuthOptions = {
         direction: "client→server",
         method: "POST",
         endpoint: "/api/auth/signout",
-        kind: "event",
+        stageType: "session-lifecycle",
         provider: (message as any)?.account?.provider,
         payload: message,
         hint: "User initiated sign-out.",
@@ -414,23 +432,41 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, account, profile }) {
       if (account) {
         logOAuthMessage({
-          direction: "server→provider",
+          direction: "provider→server",
           method: "TOKEN RESPONSE",
           endpoint: "provider_token",
-          kind: "callback",
+          stageType: "oauth-token",
           provider: account.provider,
           response: account, // reale, non mascherato
         })
-      }
-      if (profile) {
-        logOAuthMessage({
-          direction: "provider→server",
-          method: "PROFILE CALLBACK",
-          endpoint: "user_profile_callback",
-          kind: "callback",
-          provider: account?.provider,
-          response: profile,
-        })
+
+        if (profile) {
+          const profileEndpoint =
+            account.provider === "github"
+              ? "https://api.github.com/user"
+              : account.provider === "google"
+                ? "https://openidconnect.googleapis.com/v1/userinfo"
+                : `${account.provider} userinfo`
+
+          logOAuthMessage({
+            direction: "server→provider",
+            method: "GET",
+            endpoint: profileEndpoint,
+            stageType: "oauth-profile",
+            provider: account.provider,
+            hint: "Server fetched the provider userinfo endpoint to build the profile claims.",
+          })
+
+          logOAuthMessage({
+            direction: "provider→server",
+            method: "PROFILE RESPONSE",
+            endpoint: profileEndpoint,
+            stageType: "oauth-profile",
+            provider: account.provider,
+            response: profile,
+            hint: "Provider userinfo payload returned to NextAuth.",
+          })
+        }
       }
       return token
     },
@@ -465,30 +501,32 @@ if (typeof window === "undefined") {
   if (!g.__originalFetch) g.__originalFetch = fetch
 
   globalThis.fetch = (async (...args: any[]) => {
-  const [url, options] = args as [any, RequestInit]
+    const [url, options] = args as [any, RequestInit]
     const method = (options?.method || "GET").toUpperCase()
+    const endpointString = typeof url === "string" ? url : url?.toString?.() ?? "unknown"
+    const providerFromEndpoint = guessProviderFromEndpoint(endpointString)
+    const inferredStageType = inferStageType(endpointString, method === "GET" ? "oauth-profile" : "oauth-token")
+    const headersSnapshot = options?.headers ? Object.fromEntries(Object.entries(options.headers)) : {}
 
-    // log request in uscita
     logOAuthMessage({
       direction: "server→provider",
       method,
-      endpoint: typeof url === "string" ? url : (url as any)?.toString?.() ?? "unknown",
-      kind: "http-request",
-      provider: guessProviderFromEndpoint(typeof url === "string" ? url : (url as any)?.toString?.() ?? ""),
+      endpoint: endpointString,
+      stageType: inferredStageType,
+      provider: providerFromEndpoint,
       payload: options?.body ?? null,
-      headers: options?.headers ? Object.fromEntries(Object.entries(options.headers)) : {},
+      headers: headersSnapshot,
     })
 
     const response: Response = await g.__originalFetch(...args)
     const cloned = await cloneResponse(response)
 
-    // log response in entrata
     logOAuthMessage({
       direction: "provider→server",
       method,
-      endpoint: typeof url === "string" ? url : (url as any)?.toString?.() ?? "unknown",
-       kind: "http-response",
-      provider: guessProviderFromEndpoint(typeof url === "string" ? url : (url as any)?.toString?.() ?? ""),
+      endpoint: endpointString,
+      stageType: inferredStageType,
+      provider: providerFromEndpoint,
       response: cloned.body,
       headers: cloned.headers,
       status: cloned.status,
