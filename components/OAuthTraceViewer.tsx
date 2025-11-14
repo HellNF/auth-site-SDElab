@@ -225,6 +225,11 @@ export default function OAuthTraceViewer() {
               ))}
             </div>
           </div>
+          <div className="mt-3 rounded-md border border-dashed border-amber-200 bg-amber-50/80 p-3">
+            <p className="text-xs text-amber-900 leading-relaxed">
+              <span className="font-semibold">Disclaimer.</span> Browser redirects and provider-hosted pages happen outside this app, so true server→provider HTTP frames never reach this trace: you will simply not see them recorded. We highlight the surrounding stages so you can spot where the provider round-trip occurred.
+            </p>
+          </div>
         </div>
         <div className="flex flex-col items-center gap-2">
           <Button size="sm" variant="secondary" onClick={() => setShowRaw((s) => !s)}>
