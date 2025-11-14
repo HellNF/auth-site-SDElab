@@ -60,6 +60,29 @@ async function authHandler(request: NextRequest, context: RouteContext) {
 	if (action === "signin" && provider) {
 		const location = response.headers.get("location") ?? response.headers.get("Location") ?? ""
 		if (location) {
+			if (location.startsWith("http")) {
+				try {
+					const authorizeUrl = new URL(location)
+					const queryParams = Object.fromEntries(authorizeUrl.searchParams.entries())
+					logOAuthMessage({
+						direction: "server→provider",
+						method: "GET",
+						endpoint: authorizeUrl.origin + authorizeUrl.pathname,
+						stageType: "oauth-auth-code",
+						provider,
+						headers: {
+							scheme: authorizeUrl.protocol.replace(":", ""),
+							host: authorizeUrl.host,
+							path: authorizeUrl.pathname,
+						},
+						payload: queryParams,
+						hint: `Server prepared ${providerLabelText} authorization redirect (query params shown as payload).`,
+					})
+				} catch (error) {
+					console.warn("Failed to parse authorization redirect for trace", error)
+				}
+			}
+
 			logOAuthMessage({
 				direction: "server→client",
 				method: "REDIRECT",
