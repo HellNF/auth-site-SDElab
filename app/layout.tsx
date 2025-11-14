@@ -9,6 +9,7 @@ import { AuthProvider } from "@/lib/auth-context"
 import { OAuthEventsProvider } from "@/lib/oauth-events"
 import { Toaster } from "@/components/ui/toaster"
 import { AuthSessionListener } from "@/components/auth-session-listener"
+import { TraceCookieInitializer } from "@/components/trace-cookie-initializer"
 import { Suspense } from "react"
 import "./globals.css"
 
@@ -33,6 +34,7 @@ export default function RootLayout({
             <OAuthEventsProvider>
               <Header />
               <AuthSessionListener />
+              <TraceCookieInitializer />
               {/* Global subtle entry animation for page content */}
               <FadeInOnScroll>
                 <div className="min-h-screen">{children}</div>

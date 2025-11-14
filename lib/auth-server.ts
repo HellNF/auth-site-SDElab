@@ -1,3 +1,4 @@
+import { AsyncLocalStorage } from "node:async_hooks"
 import type { NextAuthOptions } from "next-auth"
 import GitHubProvider from "next-auth/providers/github"
 import GoogleProvider from "next-auth/providers/google"
@@ -27,9 +28,40 @@ type TraceEntry = {
   hint?: string
   step?: string
   message?: Record<string, unknown>
+  clientId?: string
 }
 
-const oauthTrace: TraceEntry[] = []
+const traceBuckets = new Map<string, TraceEntry[]>()
+const GLOBAL_TRACE_KEY = "__global__"
+const traceClientContext = new AsyncLocalStorage<string | undefined>()
+
+function getBucketKey(clientId?: string) {
+  if (clientId && clientId.trim().length > 0) return clientId
+  return GLOBAL_TRACE_KEY
+}
+
+function pushTraceEntry(entry: TraceEntry, clientId?: string) {
+  const key = getBucketKey(clientId)
+  const bucket = traceBuckets.get(key) ?? []
+  bucket.push(entry)
+  traceBuckets.set(key, bucket)
+}
+
+function drainTraceEntries(clientId?: string) {
+  const key = getBucketKey(clientId)
+  const bucket = traceBuckets.get(key)
+  if (!bucket?.length) return [] as TraceEntry[]
+  traceBuckets.delete(key)
+  return bucket.slice().sort((a, b) => a.timestamp - b.timestamp)
+}
+
+export function getCurrentTraceClientId() {
+  return traceClientContext.getStore()
+}
+
+export function runWithTraceClient<T>(clientId: string | undefined, fn: () => T): T {
+  return traceClientContext.run(clientId, fn)
+}
 
 // Flag di laboratorio per esporre i segreti nel trace (DISABILITATO di default)
 // Abilita impostando OAUTH_TRACE_EXPOSE_SECRETS=true nell'ambiente di sviluppo.
@@ -292,32 +324,37 @@ function computeHint(entry: TraceEntry, providerLabel: string): string {
   return providerLabel ? `Technical request/response within the ${providerLabel} OAuth flow.` : "Technical request/response within the OAuth flow."
 }
 
-export function logOAuthMessage(e: Omit<TraceEntry, "timestamp">) {
+export function logOAuthMessage(e: Omit<TraceEntry, "timestamp" | "clientId">) {
   const entry: TraceEntry = { ...e, timestamp: Date.now() }
   // enrich with provider + hint
   const providerId = entry.provider || guessProviderFromEndpoint(entry.endpoint)
   const providerLabel = labelProvider(providerId)
   const hint = entry.hint ?? computeHint({ ...entry, provider: providerId }, providerLabel)
+  const clientId = getCurrentTraceClientId()
   // sanitize sensitive data before storing
   const safeEntry: TraceEntry = {
     ...entry,
     provider: providerId,
     hint,
+    clientId,
     payload: entry.payload && typeof entry.payload === "object" ? sanitizeObject(entry.payload) : entry.payload,
     response: entry.response && typeof entry.response === "object" ? sanitizeObject(entry.response) : entry.response,
     headers: entry.headers && typeof entry.headers === "object" ? (sanitizeObject(entry.headers) as Record<string, any>) : entry.headers,
   }
-  oauthTrace.push(safeEntry)
+  pushTraceEntry(safeEntry, clientId)
   // Log utile lato dev
   console.log(`[TRACE] ${entry.direction} ${entry.method} ${entry.endpoint}`)
 }
 
-export const getOAuthTrace = () => {
-  const out = oauthTrace.slice().sort((a, b) => a.timestamp - b.timestamp)
-  oauthTrace.length = 0
-  return out
+export const getOAuthTrace = (clientId?: string) => {
+  if (!clientId) return []
+  return drainTraceEntries(clientId)
 }
-export const clearTrace = () => void (oauthTrace.length = 0)
+export const clearTrace = (clientId?: string) => {
+  if (!clientId) return
+  const key = getBucketKey(clientId)
+  traceBuckets.delete(key)
+}
 
 // ---------------------------------------
 // Clona una Response in modo sicuro
@@ -414,7 +451,7 @@ export const authOptions: NextAuthOptions = {
         payload: message,
         hint: "User initiated sign-out.",
       })
-      clearTrace()
+      clearTrace(getCurrentTraceClientId())
 
       traceAuth({
         direction: "client→server",

@@ -213,6 +213,9 @@ export default function OAuthTraceViewer() {
             <p>
               <span className="text-foreground font-semibold">Stage badge</span>: categorizes each entry (user action, auth-code redirect, token exchange, profile fetch, session, or NextAuth callback).
             </p>
+            <p>
+              <span className="text-foreground font-semibold">Per-user scope</span>: traces are bound to your browser via an OAuth trace cookie, so you only see your own activity.
+            </p>
           </div>
           <div className="mt-3 rounded-lg border border-gray-100 bg-muted/40 p-3">
             <p className="text-xs font-semibold text-foreground uppercase tracking-wide">Stage legend</p>
