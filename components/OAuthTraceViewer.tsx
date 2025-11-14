@@ -226,7 +226,7 @@ export default function OAuthTraceViewer() {
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col items-center gap-2">
           <Button size="sm" variant="secondary" onClick={() => setShowRaw((s) => !s)}>
             {showRaw ? "Hide raw JSON" : "Toggle raw JSON"}
           </Button>
